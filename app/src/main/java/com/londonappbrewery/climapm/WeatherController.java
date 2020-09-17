@@ -60,10 +60,10 @@ public class WeatherController extends AppCompatActivity {
         setContentView(R.layout.weather_controller_layout);
 
         // Linking the elements in the layout to Java code
-        mCityLabel = (TextView) findViewById(R.id.locationTV);
-        mWeatherImage = (ImageView) findViewById(R.id.weatherSymbolIV);
-        mTemperatureLabel = (TextView) findViewById(R.id.tempTV);
-        ImageButton changeCityButton = (ImageButton) findViewById(R.id.changeCityButton);
+        mCityLabel = findViewById(R.id.locationTV);
+        mWeatherImage =  findViewById(R.id.weatherSymbolIV);
+        mTemperatureLabel = findViewById(R.id.tempTV);
+        ImageButton changeCityButton = findViewById(R.id.changeCityButton);
 
 
         // TODO: Add an OnClickListener to the changeCityButton here:
@@ -85,7 +85,12 @@ public class WeatherController extends AppCompatActivity {
         super.onResume();
         Intent intent = getIntent();
         String city = intent.getStringExtra("newCity");
-        getWeatherForCurrentLocation();
+        if(city!=null){
+            getWeatherForNewCity(city);
+        }
+        else {
+            getWeatherForCurrentLocation();
+        }
     }
 
     // TODO: Add getWeatherForCurrentLocation() here:
@@ -99,7 +104,7 @@ public class WeatherController extends AppCompatActivity {
                 RequestParams params = new RequestParams();
                 params.put("lat",Latitude);
                 params.put("long",Longitude);
-                params.put("app_id",APP_ID);
+                params.put("appid",APP_ID);
                 letsDoSomeNetworking(params);
             }
 
@@ -144,10 +149,12 @@ public class WeatherController extends AppCompatActivity {
 
 // TODO: Add getWeatherForNewCity(String city) here:
 
-
-
-
-
+        private void getWeatherForNewCity(String city){
+                RequestParams params = new RequestParams();
+                params.put("q",city);
+                params.put("appid",APP_ID);
+                letsDoSomeNetworking(params);
+        }
 
 
     // TODO: Add letsDoSomeNetworking(RequestParams params) here:
@@ -160,7 +167,12 @@ public class WeatherController extends AppCompatActivity {
                 public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                     Log.d("Clima","Success ! "+response.toString());
                     WeatherDataModel weatherdata = WeatherDataModel.fromJson(response);
-                    updateUI(weatherdata);
+                    if(weatherdata!=null) {
+                        updateUI(weatherdata);
+                    }
+                    else{
+                        Toast.makeText(WeatherController.this, "Weather data is null", Toast.LENGTH_SHORT).show();
+                    }
                 }
 
                 @Override
@@ -185,5 +197,11 @@ public class WeatherController extends AppCompatActivity {
     // TODO: Add onPause() here:
 
 
-
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mLocationManager!=null){
+            mLocationManager.removeUpdates(mLocationListener);
+        }
+    }
 }
